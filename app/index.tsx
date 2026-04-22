@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Animated } from 'react-native';
+import { StyleSheet, Text, View, Animated, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
+import { theme } from '../constants/theme';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -8,14 +9,8 @@ export default function SplashScreen() {
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
-    // 1. Animasi Teks Muncul
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-
-    // 2. Animasi Garis Scanner
+    Animated.timing(fadeAnim, { toValue: 1, duration: 1500, useNativeDriver: true }).start();
+    
     Animated.loop(
       Animated.sequence([
         Animated.timing(slideAnim, { toValue: 100, duration: 1500, useNativeDriver: true }),
@@ -23,17 +18,17 @@ export default function SplashScreen() {
       ])
     ).start();
 
-    // 3. Pindah ke Home setelah 3.5 detik (Menggunakan replace agar tidak bisa di-back ke splash)
     const timer = setTimeout(() => {
       router.replace('/home'); 
     }, 3500);
 
-    return () => clearTimeout(timer); // Cleanup memory
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Animated.View style={{ opacity: fadeAnim }}>
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
+      <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
         <Text style={styles.splashTitle}>PENDEKAR</Text>
         <Text style={styles.splashSubtitle}>Pendeteksi Kartu Forensik</Text>
       </Animated.View>
@@ -43,8 +38,8 @@ export default function SplashScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#CE2626', justifyContent: 'center', alignItems: 'center' },
-  splashTitle: { fontSize: 48, fontWeight: '900', color: '#FFFFFF', letterSpacing: 4 },
-  splashSubtitle: { fontSize: 16, color: '#FFD6D6', marginTop: 5, letterSpacing: 1, textAlign: 'center' },
-  scannerLine: { position: 'absolute', width: '80%', height: 3, backgroundColor: '#FFFFFF', elevation: 5 },
+  container: { flex: 1, backgroundColor: theme.colors.primary, justifyContent: 'center', alignItems: 'center' },
+  splashTitle: { fontSize: 48, fontWeight: '900', color: theme.colors.textLight, letterSpacing: 4 },
+  splashSubtitle: { fontSize: 16, color: theme.colors.primaryLight, marginTop: 5, letterSpacing: 1 },
+  scannerLine: { position: 'absolute', width: '80%', height: 3, backgroundColor: theme.colors.textLight, elevation: 10, shadowColor: '#FFF', shadowRadius: 10, shadowOpacity: 0.5 },
 });
