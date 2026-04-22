@@ -6,6 +6,8 @@ export default function Layout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="home" />
       <Stack.Screen name="deteksi" />
+      <Stack.Screen name="hasil" />
+      <Stack.Screen name="history" />
     </Stack>
   );
 }
