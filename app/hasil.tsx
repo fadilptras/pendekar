@@ -6,8 +6,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
+// PERUBAHAN UTAMA: Tambahkan '/legacy' di akhir expo-file-system
+import * as FileSystem from 'expo-file-system/legacy';
 import { theme } from '../constants/theme';
 
 export default function HasilScreen() {
@@ -19,7 +20,6 @@ export default function HasilScreen() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Gunakan key yang sama dengan di deteksi.tsx (@pendekar_history)
         const historyStr = await AsyncStorage.getItem('@pendekar_history');
         if (historyStr) {
           const historyArray = JSON.parse(historyStr);
@@ -38,27 +38,29 @@ export default function HasilScreen() {
   const saveToGallery = async () => {
     if (!data) return;
     try {
-      // SOLUSI ERROR PERMISSION:
-      // Gunakan requestPermissionsAsync(false) untuk mematikan permintaan izin Audio
-      const { granted } = await MediaLibrary.requestPermissionsAsync(false);
+      // Hanya minta izin write/menyimpan agar tidak crash karena izin audio
+      const { granted } = await MediaLibrary.requestPermissionsAsync(true);
       
       if (!granted) {
         Alert.alert("Izin Ditolak", "Butuh izin galeri untuk menyimpan gambar.");
         return;
       }
 
-      const base64Code = data.processedImage.split('base64,')[1];
+      // Bersihkan prefix base64
+      const base64Code = data.processedImage.includes('base64,') 
+        ? data.processedImage.split('base64,')[1] 
+        : data.processedImage;
       
-      // SOLUSI ERROR TYPESCRIPT: casting ke (any) agar properti terbaca
-      const fs = FileSystem as any;
-      const filename = `${fs.documentDirectory}${data.folderName}PENDEKAR.jpg`;
+      // Sekarang FileSystem.documentDirectory akan terbaca dengan benar!
+      const filename = `${FileSystem.documentDirectory}${data.folderName}_PENDEKAR.jpg`;
       
+      // Sekarang EncodingType.Base64 juga akan terbaca dengan benar!
       await FileSystem.writeAsStringAsync(filename, base64Code, { 
-        encoding: fs.EncodingType.Base64 
+        encoding: FileSystem.EncodingType.Base64 
       });
 
       await MediaLibrary.saveToLibraryAsync(filename);
-      Alert.alert("Sukses", "Gambar hasil restorasi berhasil disimpan ke Galeri HP.");
+      Alert.alert("Sukses", "Gambar hasil pemrosesan berhasil disimpan ke Galeri HP.");
     } catch (error) {
       console.error(error);
       Alert.alert("Gagal", "Terjadi kesalahan saat menyimpan gambar.");
@@ -70,7 +72,7 @@ export default function HasilScreen() {
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
       
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/home')}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/')}>
           <Ionicons name="home" size={24} color={theme.colors.textLight} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Laporan Hasil</Text>
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     paddingHorizontal: 20, 
     paddingBottom: 20, 
-    paddingTop: theme.layout.headerPaddingTop 
+    paddingTop: theme.layout?.headerPaddingTop || 40 
   },
   backButton: { 
     width: 45, 

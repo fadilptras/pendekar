@@ -62,7 +62,7 @@ export default function DeteksiScreen() {
 
         try {
         // ip4v di laptop
-        const SERVER_URL = "http://192.168.1.8:8000/api/scan";
+        const SERVER_URL = "http://10.32.126.127:8000/api/scan";
 
         // 1. Bungkus data gambar dan teks
         const formData = new FormData();
